@@ -6,15 +6,20 @@
   import { onMount } from "svelte";
   // svelte-ignore non_reactive_update
   let chatContainer;
+  let dialogRef;
   let focusedUser = $state(-1);
   let chatting = $state(true);
   let inviting = $state(false);
+  let showFullChat = $state(-1);
 
   // 0:self 1:the other
   let chatHistory = $state([
     [0, "hi, how are you"],
     [1, "I'm fine, thanks! How about you?"],
-    [0, "Doing great, just working on that Svelte project."],
+    [
+      0,
+      "Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project.Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. Doing great, just working on that Svelte project. ",
+    ],
     [1, "Nice! Let me know if you need any help."],
     [0, "Sure thing, thanks 😊"],
   ]);
@@ -103,7 +108,7 @@
         class="h-[60%] overflow-y-auto overflow-x-hidden scroll-smooth"
         bind:this={chatContainer}
       >
-        {#each chatHistory as data}
+        {#each chatHistory as data, idx}
           <div
             class="chat"
             class:chat-start={data[0] == 1}
@@ -114,17 +119,32 @@
                 <div
                   tabindex="0"
                   role="button"
-                  class="font-normal font-sans btn bg-transparent border-0 m-1 hover:bg-transparent hover:border-0 shadow-none"
+                  class="
+                  inline-block /* 或者 block，都能让宽度限制生效 */
+                  max-w-[300px] /* 限制最大宽度，根据 UI 调整 */
+                  truncate /* overflow-hidden whitespace-nowrap text-overflow-ellipsis */
+                  font-normal font-sans
+                  bg-transparent border-0 m-1
+                  hover:bg-transparent hover:border-0 shadow-none
+                  text-sm
+                "
                 >
                   {data[1]}
                 </div>
                 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
                 <ul
                   tabindex="0"
-                  class="dropdown-content menu bg-base-100 rounded-box z-1 w-auto p-2 shadow-sm"
+                  class="dropdown-content menu bg-base-100 rounded-box z-10 w-auto p-2 shadow-sm"
                 >
-                  <li><button>copy</button></li>
-                  <li><button disabled>resend</button></li>
+                  <li><button>Copy</button></li>
+                  <li>
+                    <button
+                      onclick={() => {
+                        showFullChat = idx;
+                        dialogRef.showModal();
+                      }}>Show Full Text</button
+                    >
+                  </li>
                 </ul>
               </div>
             </div>
@@ -179,3 +199,18 @@
     </div>
   {/if}
 </div>
+
+<dialog bind:this={dialogRef} class="modal">
+  <div class="modal-box">
+    {#if showFullChat != -1}
+      <p class="py-4">{chatHistory[showFullChat][1]}</p>
+    {/if}
+    <div class="flex justify-end items-center">
+      <button class="btn m-2">Copy</button>
+
+      <form method="dialog">
+        <button class="btn m-2">Close</button>
+      </form>
+    </div>
+  </div>
+</dialog>

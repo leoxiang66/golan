@@ -64,7 +64,7 @@
       </button>
     </a>
 
-    <label class="border border-black dark:border-white toggle text-base-content mb-6">
+    <!-- <label class="border border-black dark:border-white toggle text-base-content mb-6">
       <input type="checkbox" value="synthwave" bind:checked={$isDark}/>
 
       <svg
@@ -100,7 +100,7 @@
           ><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></g
         ></svg
       >
-    </label>
+    </label> -->
   </div>
 
 
