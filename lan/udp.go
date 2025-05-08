@@ -1,5 +1,5 @@
 //go:build !windows
-package main
+package lan
 
 import (
     "bufio"
@@ -24,6 +24,7 @@ const (
 )
 
 var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}
+var PEERS map[string]struct{}
 
 // DiscoveryMsg 用于 UDP 广播/接收
 type DiscoveryMsg struct {
@@ -31,7 +32,7 @@ type DiscoveryMsg struct {
     WSPort int    `json:"wsPort"`
 }
 
-func main() {
+func init() {
     // 1) 生成基于当前时间的唯一 ID
     id := time.Now().Format("2006-01-02T15:04:05")
     log.Printf("本节点 ID = %s\n", id)
@@ -81,7 +82,7 @@ func main() {
     defer udpConn.Close()
 
     // 维护已见 peers
-    peers := make(map[string]struct{})
+    PEERS = make(map[string]struct{})
     var mu sync.Mutex
 
     // 4) UDP 接收，发现新节点时提示邀请
@@ -102,9 +103,9 @@ func main() {
             }
 
             mu.Lock()
-            _, seen := peers[msg.ID]
+            _, seen := PEERS[msg.ID]
             if !seen {
-                peers[msg.ID] = struct{}{}
+                PEERS[msg.ID] = struct{}{}
             }
             mu.Unlock()
 

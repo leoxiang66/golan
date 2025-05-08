@@ -1,5 +1,5 @@
 //go:build windows
-package main
+package lan
 
 import (
     "bufio"
@@ -22,6 +22,8 @@ const (
     broadcastIP  = "255.255.255.255"
     broadcastInt = time.Second
 )
+
+var PEERS map[string]struct{}
 
 var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}
 
@@ -70,7 +72,7 @@ func main() {
     }
     defer udpConn.Close()
 
-    peers := make(map[string]struct{})
+    PEERS = make(map[string]struct{})
     var mu sync.Mutex
 
     go func() {
@@ -89,9 +91,9 @@ func main() {
                 continue
             }
             mu.Lock()
-            _, seen := peers[msg.ID]
+            _, seen := PEERS[msg.ID]
             if !seen {
-                peers[msg.ID] = struct{}{}
+                PEERS[msg.ID] = struct{}{}
             }
             mu.Unlock()
             if !seen {
