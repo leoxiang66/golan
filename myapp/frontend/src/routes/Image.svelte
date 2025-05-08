@@ -1,8 +1,16 @@
 <script>
   import Sidebar from "../components/Sidebar.svelte";
   import { peers } from "../stores";
-  import { InviteSocket } from "../../wailsjs/go/main/App";
+  import { InviteSocket, Greet } from "../../wailsjs/go/main/App";
+  import { EventsOn } from "../../wailsjs/runtime/runtime";
   let focusedUser = $state(-1);
+  let chatting = $state(false);
+  let inviting = $state(false);
+
+  EventsOn("lan:socket_accepted", () => {
+    inviting = false;
+    chatting = true;
+  });
 </script>
 
 <div
@@ -33,8 +41,13 @@
 
   <div class="border-l border-gray-100 h-full"></div>
 
-  {#if focusedUser != -1 && $peers.length>0}
-    <!-- {$peers[focusedUser]} -->
+  {#if chatting}
+    1
+  {:else if inviting}
+    <div class="block m-auto">
+      <span class="loading loading-dots loading-lg"></span>
+    </div>
+  {:else if focusedUser != -1 && $peers.length > 0}
     <div class="block m-auto text-lg">
       <div class="flex flex-col items-center">
         <div class="m-2">
@@ -46,7 +59,17 @@
         <div class="flex">
           <button
             class="btn m-2"
-            onclick={() => InviteSocket($peers[focusedUser], 30)}>Yes</button
+            onclick={async () => {
+              inviting = true;
+              const result = await InviteSocket($peers[focusedUser], 30);
+              if (result) {
+                chatting = true;
+              } else {
+                chatting = false;
+                inviting = false;
+                focusedUser = -1;
+              }
+            }}>Yes</button
           >
           <button class="btn m-2" onclick={() => (focusedUser = -1)}
             >Cancel</button

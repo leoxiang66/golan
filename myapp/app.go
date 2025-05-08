@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"myapp/lan"
 	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
@@ -68,27 +70,44 @@ func (a *App) shutdown(ctx context.Context) {
 }
 
 // Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
+func (a *App) Greet(name string) {
+	fmt.Println(name)
 }
 
-func (a *App) InviteSocket(id string) bool {
+func (a *App) InviteSocket(id string, timeout_s int) (bool, error) {
+	// 1) 定义一个结果类型，既包含连接也包含错误
+	type inviteResult struct {
+		Conn *websocket.Conn
+		Err  error
+	}
 
-	go lan.InviteSocket(id)
-	select{}
-    // result channel, buffered so the goroutine can't block forever
-    // result := make(chan bool, 1)
+	result := make(chan inviteResult, 1)
 
-    // fire off the actual invite in its own goroutine
-    // go func() {
-    //     result <- lan.InviteSocket(id)
-    // }()
+	// 2) 后台 goroutine 去执行实际的 InviteSocket
+	go func() {
+		conn, err := lan.InviteSocket(id)
+		result <- inviteResult{Conn: conn, Err: err}
+	}()
 
-    // // wait for either the InviteSocket result or the timeout
-    // select {
-    // case ok := <-result:
-    //     return ok                // got a real answer before timeout
-    // case <-time.After(time.Duration(timeout_s) * time.Second):
-    //     return false             // timed out
-    // }
+	// 3) 等待结果或超时
+	select {
+	case res := <-result:
+		if res.Conn == nil {
+			fmt.Println("connection失败,返回false")
+			return false, res.Err
+		} else {
+			go func() {
+				// 成功拿到 conn，进入聊天
+				// 聊天结束后才关闭连接并返回
+				lan.ChatLoop(res.Conn)
+				res.Conn.Close()
+				fmt.Println("Connection closed")
+			}()
+			return true, nil
+		}
+
+	case <-time.After(time.Duration(timeout_s) * time.Second):
+		// 超时返回自定义错误
+		return false, fmt.Errorf("invite to %s timed out after %d seconds", id, timeout_s)
+	}
 }

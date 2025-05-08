@@ -3,14 +3,16 @@
 package lan
 
 import (
-	"bufio"
+	// "bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
-	"os"
+
+	// "os"
 	"sync"
 	"syscall"
 	"time"
@@ -159,32 +161,32 @@ func Launch() {
 // }
 
 // inviteSocket 发起 WebSocket 邀请并聊天
-func InviteSocket(guestID string) {
+func InviteSocket(guestID string) (*websocket.Conn,error){
 	if peer, ok := PEERS[guestID]; ok {
 		peerIP, peerWSPort := peer.IP, peer.WSPort
 		url := fmt.Sprintf("ws://%s:%d/ws", peerIP, peerWSPort)
 		conn, _, err := websocket.DefaultDialer.Dial(url, nil)
 		if err != nil {
 			log.Printf("Dial %s 失败: %v", url, err)
-			return
+			return nil,err
 		}
-		defer conn.Close()
-
 		// 发送 invite
 		conn.WriteJSON(map[string]string{"type": "invite", "from": id})
 
 		// 读取响应
 		var resp struct{ Type string }
 		if err := conn.ReadJSON(&resp); err != nil {
-			log.Printf("读取响应失败: %v", err)
-			return
+			log.Printf("Failed to read response: %v", err)
+			return nil,err
 		}
 		if resp.Type != "accept" {
-			log.Printf("对方拒绝邀请")
-			return
+			log.Printf("The invitation is rejected")
+			return nil,err
 		}
-		chatLoop(conn)
+		// chatLoop(conn)
+        return conn,nil
 	}
+    return nil,errors.New("不存在此Peer")
 
 }
 
@@ -221,36 +223,32 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 同意并进入聊天
 	conn.WriteJSON(map[string]string{"type": "accept"})
-	chatLoop(conn)
+	ChatLoop(conn)
 }
 
 // chatLoop 终端与 WebSocket 双向聊天
-func chatLoop(conn *websocket.Conn) {
+func ChatLoop(conn *websocket.Conn) {
 	// 从 WS -> 终端
 	go func() {
 		for {
 			_, data, err := conn.ReadMessage()
 			if err != nil {
 				log.Println("WS 读取错误:", err)
-				os.Exit(0)
+                break
+				// os.Exit(0)
 			}
-			fmt.Printf("\n<< %s\n>>> ", string(data))
+			fmt.Printf("\n<< %s\n>>> ", string(data)) //todo
 		}
 	}()
 
-	// 从终端 -> WS
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print(">>> ")
+	// todo: send
 	for {
-		line, err := reader.ReadString('\n')
-		if err != nil {
-			log.Println("stdin 读取错误:", err)
-			return
-		}
+		line := "hi"
+
 		if err := conn.WriteMessage(websocket.TextMessage, []byte(line)); err != nil {
 			log.Println("WS 发送错误:", err)
 			return
 		}
-		fmt.Print(">>> ")
+        time.Sleep(time.Second)
 	}
 }
