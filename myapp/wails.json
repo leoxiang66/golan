@@ -1,0 +1,13 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "Latex Tool",
+  "outputfilename": "Latex Tool",
+  "frontend:install": "yarn",
+  "frontend:build": "yarn build",
+  "frontend:dev:watcher": "yarn dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Tao Xiang",
+    "email": "xiang.tao@outlook.de"
+  }
+}

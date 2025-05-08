@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+.sidebar-item {
+    @apply  w-[90%] rounded-lg p-2 flex items-center justify-center font-bold transform ease-in duration-75
+}
+
