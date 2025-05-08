@@ -3,20 +3,63 @@
   import { peers } from "../stores";
   import { InviteSocket, Greet } from "../../wailsjs/go/main/App";
   import { EventsOn } from "../../wailsjs/runtime/runtime";
+  import { onMount } from "svelte";
+  // svelte-ignore non_reactive_update
+  let chatContainer;
   let focusedUser = $state(-1);
-  let chatting = $state(false);
+  let chatting = $state(true);
   let inviting = $state(false);
+
+  // 0:self 1:the other
+  let chatHistory = $state([
+    [0, "hi, how are you"],
+    [1, "I'm fine, thanks! How about you?"],
+    [0, "Doing great, just working on that Svelte project."],
+    [1, "Nice! Let me know if you need any help."],
+    [0, "Sure thing, thanks 😊"],
+  ]);
+
+  // 绑定给 textarea 的输入内容
+  let newMessage = $state("");
+
+  // 处理 Enter 发送
+  function handleKeydown(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const text = newMessage.trim();
+      if (!text) return;
+      // 添加到历史
+      chatHistory = [...chatHistory, [0, text]];
+      // 清空输入
+      newMessage = "";
+      // 滚到底部
+      // 下一帧保证 DOM 更新完
+      requestAnimationFrame(scrollToBottom);
+    }
+  }
+
+  // 把滚动条推到底部
+  function scrollToBottom() {
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  }
+
+  onMount(() => {
+    // requestAnimationFrame
+    scrollToBottom();
+  });
 
   EventsOn("lan:socket_accepted", () => {
     inviting = false;
     chatting = true;
   });
 
-  EventsOn("lan:conn_closed",()=>{
+  EventsOn("lan:conn_closed", () => {
     focusedUser = -1;
     chatting = false;
     inviting = false;
-  })
+  });
 </script>
 
 <div
@@ -24,7 +67,7 @@
 >
   <Sidebar />
 
-  <div class="flex flex-col overflow-y-auto w-[200px]">
+  <div class="flex flex-col overflow-y-auto w-[300px]">
     {#each $peers as p, idx}
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -33,12 +76,15 @@
         class:bg-slate-100={focusedUser == idx}
         onclick={() => {
           if (idx != 0) {
-            focusedUser = idx
+            focusedUser = idx;
           }
         }}
       >
         <div class="w-auto py-2 my-4 px-2">
-          <div class="avatar avatar-placeholder" class:avatar-online={idx==0 || (chatting &&focusedUser == idx)}>
+          <div
+            class="avatar avatar-placeholder"
+            class:avatar-online={idx == 0 || (chatting && focusedUser == idx)}
+          >
             <div class="bg-neutral text-neutral-content w-12 rounded-full">
               <span class="text-sm">user{idx}</span>
             </div>
@@ -52,7 +98,51 @@
   <div class="border-l border-gray-100 h-full"></div>
 
   {#if chatting}
-    1
+    <div class="flex flex-col justify-start h-full w-full">
+      <div
+        class="h-[60%] overflow-y-auto overflow-x-hidden scroll-smooth"
+        bind:this={chatContainer}
+      >
+        {#each chatHistory as data}
+          <div
+            class="chat"
+            class:chat-start={data[0] == 1}
+            class:chat-end={data[0] == 0}
+          >
+            <div class="chat-bubble mx-2 my-6">
+              <div class="dropdown">
+                <div
+                  tabindex="0"
+                  role="button"
+                  class="font-normal font-sans btn bg-transparent border-0 m-1 hover:bg-transparent hover:border-0 shadow-none"
+                >
+                  {data[1]}
+                </div>
+                <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+                <ul
+                  tabindex="0"
+                  class="dropdown-content menu bg-base-100 rounded-box z-1 w-auto p-2 shadow-sm"
+                >
+                  <li><button>copy</button></li>
+                  <li><button disabled>resend</button></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        {/each}
+      </div>
+
+      <div class="border-t border-gray-100 w-full"></div>
+
+      <div class="h-[38%]">
+        <textarea
+          bind:value={newMessage}
+          onkeydown={handleKeydown}
+          class="w-full h-full textarea focus:outline-none border-none focus:ring-0"
+          placeholder="Type your message here"
+        ></textarea>
+      </div>
+    </div>
   {:else if inviting}
     <div class="block m-auto">
       <span class="loading loading-dots loading-lg"></span>
