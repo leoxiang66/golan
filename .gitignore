@@ -10,7 +10,6 @@ golan
 *.dll
 *.so
 *.dylib
-**myapp/build/**
 ros_sensors
 
 **node_modules**
