@@ -5,7 +5,7 @@ export const page_idx = writable(1);
 // 用一个 store 来保存当前主题状态（true = 深色 / synthwave，false = 浅色 / 默认 light）
 export const isDark = writable(false);
 
-export const peers = writable([]);
+export const peers = writable(["self"]);
 
 EventsOn("lan:peers", (...args) => {
   if (args.length === 0) return; // ignore empty calls
@@ -15,5 +15,6 @@ EventsOn("lan:peers", (...args) => {
   //   console.log("peers array:", data);
   //   console.log("number of peers:", data.length);
   data.sort();
+  data.unshift("self")
   peers.set(data);
 });

@@ -101,6 +101,7 @@ func (a *App) InviteSocket(id string, timeout_s int) (bool, error) {
 				// 聊天结束后才关闭连接并返回
 				lan.ChatLoop(res.Conn)
 				res.Conn.Close()
+				runtime.EventsEmit(a.ctx,"lan:conn_closed")
 				fmt.Println("Connection closed")
 			}()
 			return true, nil
