@@ -17,3 +17,7 @@ export function InviteSocket(arg1, arg2) {
 export function NotifyBackend(arg1) {
   return window['go']['app']['App']['NotifyBackend'](arg1);
 }
+
+export function SendMsgToBackend(arg1) {
+  return window['go']['app']['App']['SendMsgToBackend'](arg1);
+}

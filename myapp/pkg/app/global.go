@@ -79,7 +79,6 @@ func (a *App) Greet(name string) {
 }
 
 func (a *App) InviteSocket(id string, timeout_s int) (bool, error) {
-	fmt.Println("guest ID: "+id)
 
 	// 1) 定义一个结果类型，既包含连接也包含错误
 	type inviteResult struct {
@@ -105,7 +104,7 @@ func (a *App) InviteSocket(id string, timeout_s int) (bool, error) {
 			go func() {
 				// 成功拿到 conn，进入聊天
 				// 聊天结束后才关闭连接并返回
-				lan.ChatLoop(res.Conn)
+				lan.ChatLoop(res.Conn,id)
 				res.Conn.Close()
 				fmt.Println("guest ID2: "+id)
 				runtime.EventsEmit(a.Ctx,"lan:conn_closed",id)
@@ -122,6 +121,10 @@ func (a *App) InviteSocket(id string, timeout_s int) (bool, error) {
 
 func (a *App)NotifyBackend(value bool)  {
 	konst.BoolChan <- value
+}
+
+func (a *App)SendMsgToBackend(value string)  {
+	konst.StringChan <- value
 }
 
 

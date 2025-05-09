@@ -91,7 +91,10 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	if result {
 		conn.WriteJSON(map[string]string{"type": "accept"})
-		ChatLoop(conn)
+		ChatLoop(conn,msg.From)
+		fmt.Println("Conn closed")
+		runtime.EventsEmit(konst.Ctx, "lan:conn_closed", msg.From)
+
 	} else {
 		conn.WriteJSON(map[string]string{"type": "reject"})
 		return
@@ -100,7 +103,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // chatLoop 终端与 WebSocket 双向聊天
-func ChatLoop(conn *websocket.Conn) {
+func ChatLoop(conn *websocket.Conn, guestID string) {
 	// 从 WS -> 终端
 	closed := make(chan struct{})
 
@@ -117,29 +120,26 @@ func ChatLoop(conn *websocket.Conn) {
 					close(closed)
 					return
 				}
-
-				fmt.Printf("\n<< %s\n>>> ", string(data)) //todo
+				runtime.EventsEmit(konst.Ctx,"lan:guest_msg",string(data),guestID)
 			}
 
 		}
 	}()
 
-	// todo: send
 	for {
 		select {
-		case <-closed:
-			log.Println("Detected closed connection")
-			return
-		default:
-			time.Sleep(time.Second)
+			case <-closed:
+				log.Println("Detected closed connection")
+				return
+			case msg := <-konst.StringChan:
+				if err := conn.WriteMessage(websocket.TextMessage, []byte(msg)); err != nil {
+					log.Println("WS 发送错误:", err)
+					close(closed)
+					return
+				}
+			default:
+				time.Sleep(500*time.Millisecond)
 		}
-
-		// line := "hi"
-
-		// if err := conn.WriteMessage(websocket.TextMessage, []byte(line)); err != nil {
-		// 	log.Println("WS 发送错误:", err)
-		// 	return
-		// }
 
 	}
 }

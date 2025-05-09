@@ -9,3 +9,5 @@ export function Greet(arg1:string):Promise<void>;
 export function InviteSocket(arg1:string,arg2:number):Promise<boolean>;
 
 export function NotifyBackend(arg1:boolean):Promise<void>;
+
+export function SendMsgToBackend(arg1:string):Promise<void>;

@@ -1,14 +1,26 @@
 <script>
   import Sidebar from "../components/Sidebar.svelte";
   import { peers } from "../stores";
-  import { InviteSocket, Greet, NotifyBackend } from "../../wailsjs/go/app/App";
+  import {
+    InviteSocket,
+    Greet,
+    NotifyBackend,
+    SendMsgToBackend,
+  } from "../../wailsjs/go/app/App";
   import { EventsOn } from "../../wailsjs/runtime/runtime.js";
-  import { tick } from "svelte";
 
   let chatContainer;
   let dialogRef;
   let focusedUser = $state("nil"); //todo: 改成ID
   let chatting = $state(new Map([["self", true]]));
+
+  let chatting_history = $state(new Map([]));
+
+  function add_chat_msg(guestID, user, msg) {
+    const old_history = chatting_history.get(guestID);
+    chatting_history.set(guestID, [...old_history, [user, msg]]);
+    chatting_history = new Map(chatting_history);
+  }
 
   // 更新对象状态
   // 通过重新赋值来强制触发 Svelte 的更新
@@ -47,14 +59,6 @@
     inviting = false;
   }
 
-  let chatHistory = $state([
-    [0, "hi, how are you"],
-    [1, "I'm fine, thanks! How about you?"],
-    [0, "Doing great, just working on that Svelte project. Doing great..."],
-    [1, "Nice! Let me know if you need any help."],
-    [0, "Sure thing, thanks 😊"],
-  ]);
-
   let newMessage = $state("");
 
   // Handle 'Enter' key press
@@ -62,8 +66,9 @@
     if (event.key === "Enter") {
       event.preventDefault();
       const text = newMessage.trim();
+      SendMsgToBackend(text);
       if (!text) return;
-      chatHistory = [...chatHistory, [0, text]]; // add to chat history
+      add_chat_msg(focusedUser, 0, text);
       newMessage = ""; // clear input field
       requestAnimationFrame(scrollToBottom);
     }
@@ -78,10 +83,14 @@
   $effect(() => {
     if (chatting.has(focusedUser) && chatting.get(focusedUser)) {
       scrollToBottom();
+      if (!chatting_history.has(focusedUser)) {
+        chatting_history.set(focusedUser, []);
+        chatting_history = new Map(chatting_history);
+      }
     }
 
     if (focusedUser != "-1") {
-      console.log(chatting);
+      // console.log(chatting);
     }
   });
 
@@ -91,15 +100,23 @@
     receiveInvite = data;
   });
 
+  EventsOn("lan:guest_msg", (...args) => {
+    if (args.length === 0) return; // ignore empty calls
+    const msg = args[0];
+    const guestID = args[1];
+    add_chat_msg(guestID, 1, msg);
+  });
+
   EventsOn("lan:conn_closed", (...args) => {
     if (args.length === 0) return; // ignore empty calls
-    
+
     const id = args[0];
-    Greet(id.toString())
+    // Greet(id.toString())
     focusedUser = "nil";
     updateChatting(id, false);
     inviting = false;
     receiveInvite = "nil";
+    chatting_history.delete(id);
   });
 </script>
 
@@ -146,10 +163,12 @@
   {:else}
     <Sidebar />
 
-    <div class="flex flex-col overflow-y-auto w-[300px]">
+    <div class="hover:cursor-default flex flex-col overflow-y-auto w-[300px]">
       {#each $peers as p, idx}
         <div
-          class="flex items-center hover:bg-slate-100"
+          class={idx != 0
+            ? "flex items-center hover:bg-slate-100"
+            : "flex items-center border-b"}
           class:bg-slate-100={focusedUser === p}
           onclick={() => {
             if (idx != 0) {
@@ -181,7 +200,7 @@
             class="h-[60%] overflow-y-auto overflow-x-hidden scroll-smooth"
             bind:this={chatContainer}
           >
-            {#each chatHistory as data, idx}
+            {#each chatting_history.get(focusedUser) as data, idx}
               <div
                 class="chat"
                 class:chat-start={data[0] === 1}
@@ -265,7 +284,7 @@
 <dialog bind:this={dialogRef} class="modal">
   <div class="modal-box bg-white text-black">
     {#if showFullChat != -1}
-      <p class="py-4">{chatHistory[showFullChat][1]}</p>
+      <p class="py-4">{chatting_history.get(focusedUser)[showFullChat][1]}</p>
     {/if}
     <div class="flex justify-end items-center">
       <button class="btn m-2">Copy</button>
