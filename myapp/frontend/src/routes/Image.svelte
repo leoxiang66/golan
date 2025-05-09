@@ -1,9 +1,8 @@
 <script>
   import Sidebar from "../components/Sidebar.svelte";
   import { peers } from "../stores";
-  import { InviteSocket, Greet } from "../../wailsjs/go/main/App";
-  import { EventsOn } from "../../wailsjs/runtime/runtime";
-  import { onMount } from "svelte";
+  import { InviteSocket, Greet } from "../../wailsjs/go/app/App";
+  import { EventsOn } from "../../wailsjs/runtime/runtime.js";
   // svelte-ignore non_reactive_update
   let chatContainer;
   let dialogRef;
