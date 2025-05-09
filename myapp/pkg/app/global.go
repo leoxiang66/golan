@@ -6,7 +6,7 @@ import (
 	"myapp/pkg/lan"
 	"sync"
 	"time"
-
+	"myapp/pkg/konst"
 	"github.com/gorilla/websocket"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -14,7 +14,7 @@ import (
 
 // App struct
 type App struct {
-	ctx context.Context
+	Ctx context.Context
 }
 
 var MyApp *App
@@ -27,7 +27,8 @@ func NewApp() *App {
 // startup is called at application startup
 func (a *App) Startup(ctx context.Context) {
 	// Perform your setup here
-	a.ctx = ctx
+	a.Ctx = ctx
+	konst.Ctx = ctx
 	go lan.Launch()
 	go func() {
 		var mu sync.Mutex
@@ -104,7 +105,7 @@ func (a *App) InviteSocket(id string, timeout_s int) (bool, error) {
 				// 聊天结束后才关闭连接并返回
 				lan.ChatLoop(res.Conn)
 				res.Conn.Close()
-				runtime.EventsEmit(a.ctx,"lan:conn_closed")
+				runtime.EventsEmit(a.Ctx,"lan:conn_closed",id)
 				fmt.Println("Connection closed")
 			}()
 			return true, nil
@@ -114,6 +115,10 @@ func (a *App) InviteSocket(id string, timeout_s int) (bool, error) {
 		// 超时返回自定义错误
 		return false, fmt.Errorf("invite to %s timed out after %d seconds", id, timeout_s)
 	}
+}
+
+func (a *App)NotifyBackend(value bool)  {
+	konst.BoolChan <- value
 }
 
 

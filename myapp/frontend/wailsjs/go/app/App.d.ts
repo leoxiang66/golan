@@ -7,3 +7,5 @@ export function DomReady(arg1:context.Context):Promise<void>;
 export function Greet(arg1:string):Promise<void>;
 
 export function InviteSocket(arg1:string,arg2:number):Promise<boolean>;
+
+export function NotifyBackend(arg1:boolean):Promise<void>;
