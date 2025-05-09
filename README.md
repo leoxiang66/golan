@@ -11,5 +11,5 @@ Try the desktop GUI app for lan-chatting/document transferring:https://github.co
 - [ ] support disconnecting sockets by users
 - [ ] support file transferring
 - [ ] support blacklist
-- [ ] encryption/dycryption
+- [ ] encryption/decryption
       
