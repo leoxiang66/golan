@@ -3,7 +3,7 @@ package main
 import (
 	"embed"
 	"log"
-	"myapp/app"
+	"myapp/pkg/app"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/logger"
 	"github.com/wailsapp/wails/v2/pkg/options"

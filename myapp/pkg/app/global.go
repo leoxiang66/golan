@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
-	"myapp/lan"
+	"myapp/pkg/lan"
 	"sync"
 	"time"
 
