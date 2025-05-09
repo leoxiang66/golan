@@ -9,6 +9,14 @@
   let dialogRef;
   let focusedUser = $state("nil"); //todo: 改成ID
   let chatting = $state(new Map([["self", true]]));
+
+  // 更新对象状态
+  // 通过重新赋值来强制触发 Svelte 的更新
+  function updateChatting(user, status) {
+    chatting.set(user, status);
+    chatting = new Map(chatting); // 重新创建 Map 引用
+  }
+
   let inviting = $state(false);
   let receiveInvite = $state("nil");
   let showFullChat = $state(-1);
@@ -21,16 +29,16 @@
       console.log("guest accepted");
 
       // Update chatting state
-      chatting.set(focusedUser, true);
-      const tmp = focusedUser
-      focusedUser = "nil"
-      focusedUser = tmp
+      updateChatting(focusedUser, true);
+      const tmp = focusedUser;
+      focusedUser = "nil";
+      focusedUser = tmp;
 
       // Ensure UI updates after state changes
       console.log("chatting after update", chatting);
     } else {
       console.log("guest rejected");
-      chatting.set(focusedUser, false);
+      updateChatting(focusedUser, false);
       focusedUser = "nil"; // Reset focusedUser
       console.log("chatting after reject", chatting);
     }
@@ -74,7 +82,7 @@
       scrollToBottom();
     }
 
-    if(focusedUser != "nil"){
+    if (focusedUser != "nil") {
       console.log(focusedUser);
     }
   });
@@ -90,7 +98,7 @@
     const id = args[0];
 
     focusedUser = "nil";
-    chatting.set(id, false);
+    updateChatting(id, false);
     inviting = false;
     receiveInvite = "nil";
   });
@@ -114,7 +122,7 @@
           class="btn m-2"
           onclick={() => {
             NotifyBackend(true);
-            chatting.set(receiveInvite, true); // Assume `chatting` is a Map
+            updateChatting(receiveInvite, true); // Assume `chatting` is a Map
             inviting = false;
             focusedUser = receiveInvite;
             receiveInvite = "nil"; // Clear the invite

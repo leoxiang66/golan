@@ -61,7 +61,6 @@ func InviteSocket(guestID string) (*websocket.Conn, error) {
 			log.Printf("The invitation is rejected")
 			return nil, err
 		}
-		// chatLoop(conn)
 		return conn, nil
 	}
 	return nil, errors.New("不存在此Peer")
@@ -109,6 +108,7 @@ func ChatLoop(conn *websocket.Conn) {
 			_, data, err := conn.ReadMessage()
 			if err != nil {
 				log.Println("WS 读取错误:", err)
+				runtime.EventsEmit(konst.Ctx,"lan:conn_closed",id)
 				break
 				// os.Exit(0)
 			}
