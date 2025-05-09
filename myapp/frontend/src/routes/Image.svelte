@@ -8,7 +8,7 @@
   let chatContainer;
   let dialogRef;
   let focusedUser = $state(-1);
-  let chatting = $state(true);
+  let chatting = $state(false);
   let inviting = $state(false);
   let showFullChat = $state(-1);
 
@@ -50,10 +50,16 @@
     }
   }
 
-  onMount(() => {
-    // requestAnimationFrame
-    scrollToBottom();
+  $effect(() => {
+    if (chatting) {
+      scrollToBottom();
+    }
   });
+
+  // onMount(() => {
+  //   // requestAnimationFrame
+  //   scrollToBottom();
+  // });
 
   EventsOn("lan:socket_accepted", () => {
     inviting = false;
