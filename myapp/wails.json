@@ -1,7 +1,7 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "Latex Tool",
-  "outputfilename": "Latex Tool",
+  "name": "LoConn",
+  "outputfilename": "LoConn",
   "frontend:install": "yarn",
   "frontend:build": "yarn build",
   "frontend:dev:watcher": "yarn dev",

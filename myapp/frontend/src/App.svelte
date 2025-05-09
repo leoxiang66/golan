@@ -12,6 +12,6 @@
     {:else if $page_idx === 1}
     <Image />
     {:else if $page_idx === 2}
-    <Container />
+    <Image />
   {/if}
 </div>

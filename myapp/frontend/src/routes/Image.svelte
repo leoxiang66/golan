@@ -114,7 +114,7 @@
             class:chat-start={data[0] == 1}
             class:chat-end={data[0] == 0}
           >
-            <div class="chat-bubble mx-2 my-6">
+            <div class="chat-bubble mx-2 my-6 bg-[#EFEFEF] text-black">
               <div class="dropdown">
                 <div
                   tabindex="0"
@@ -158,7 +158,7 @@
         <textarea
           bind:value={newMessage}
           onkeydown={handleKeydown}
-          class="w-full h-full textarea focus:outline-none border-none focus:ring-0"
+          class="w-full h-full textarea focus:outline-none border-none focus:ring-0 bg-transparent"
           placeholder="Type your message here"
         ></textarea>
       </div>

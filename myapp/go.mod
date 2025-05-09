@@ -6,7 +6,7 @@ toolchain go1.23.4
 
 require (
 	github.com/gorilla/websocket v1.5.3
-	github.com/wailsapp/wails/v2 v2.9.2
+	github.com/wailsapp/wails/v2 v2.10.1
 )
 
 require (
