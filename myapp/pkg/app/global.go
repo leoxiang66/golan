@@ -79,6 +79,8 @@ func (a *App) Greet(name string) {
 }
 
 func (a *App) InviteSocket(id string, timeout_s int) (bool, error) {
+	fmt.Println("guest ID: "+id)
+
 	// 1) 定义一个结果类型，既包含连接也包含错误
 	type inviteResult struct {
 		Conn *websocket.Conn
@@ -105,6 +107,7 @@ func (a *App) InviteSocket(id string, timeout_s int) (bool, error) {
 				// 聊天结束后才关闭连接并返回
 				lan.ChatLoop(res.Conn)
 				res.Conn.Close()
+				fmt.Println("guest ID2: "+id)
 				runtime.EventsEmit(a.Ctx,"lan:conn_closed",id)
 				fmt.Println("Connection closed")
 			}()

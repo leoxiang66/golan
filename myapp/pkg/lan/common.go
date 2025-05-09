@@ -97,35 +97,49 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 }
 
 // chatLoop 终端与 WebSocket 双向聊天
 func ChatLoop(conn *websocket.Conn) {
 	// 从 WS -> 终端
+	closed := make(chan struct{})
+
 	go func() {
 		for {
-			_, data, err := conn.ReadMessage()
-			if err != nil {
-				log.Println("WS 读取错误:", err)
-				runtime.EventsEmit(konst.Ctx,"lan:conn_closed",id)
-				break
-				// os.Exit(0)
+			select {
+			case <-closed:
+				log.Println("Detected closed connection")
+				return
+			default:
+				_, data, err := conn.ReadMessage()
+				if err != nil {
+					log.Println("WS 读取错误:", err)
+					close(closed)
+					return
+				}
+
+				fmt.Printf("\n<< %s\n>>> ", string(data)) //todo
 			}
-			
-			fmt.Printf("\n<< %s\n>>> ", string(data)) //todo
+
 		}
 	}()
 
 	// todo: send
 	for {
-		
+		select {
+		case <-closed:
+			log.Println("Detected closed connection")
+			return
+		default:
+			time.Sleep(time.Second)
+		}
+
 		// line := "hi"
 
 		// if err := conn.WriteMessage(websocket.TextMessage, []byte(line)); err != nil {
 		// 	log.Println("WS 发送错误:", err)
 		// 	return
 		// }
-		time.Sleep(time.Second)
+
 	}
 }

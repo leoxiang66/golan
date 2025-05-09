@@ -77,13 +77,11 @@
 
   $effect(() => {
     if (chatting.has(focusedUser) && chatting.get(focusedUser)) {
-      console.log("进入chatting");
-
       scrollToBottom();
     }
 
-    if (focusedUser != "nil") {
-      console.log(focusedUser);
+    if (focusedUser != "-1") {
+      console.log(chatting);
     }
   });
 
@@ -95,8 +93,9 @@
 
   EventsOn("lan:conn_closed", (...args) => {
     if (args.length === 0) return; // ignore empty calls
+    
     const id = args[0];
-
+    Greet(id.toString())
     focusedUser = "nil";
     updateChatting(id, false);
     inviting = false;
@@ -153,7 +152,9 @@
           class="flex items-center hover:bg-slate-100"
           class:bg-slate-100={focusedUser === p}
           onclick={() => {
-            focusedUser = p;
+            if (idx != 0) {
+              focusedUser = p;
+            }
           }}
         >
           <div class="w-auto py-2 my-4 px-2">
