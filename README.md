@@ -12,6 +12,7 @@ Try the desktop GUI app for lan-chatting/document transferring:https://github.co
 - [ ] GUI notifications for system information such as "socket disconnected"
 - [ ] support disconnecting sockets by users
 - [ ] support file transferring
+- [ ] support desktop notifications for new messages
 - [ ] support blacklist
 - [ ] encryption/decryption
       
