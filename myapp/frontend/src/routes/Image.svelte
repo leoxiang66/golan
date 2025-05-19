@@ -10,6 +10,7 @@
   import { EventsOn } from "../../wailsjs/runtime/runtime.js";
 
   let chatContainer;
+  let showToast = $state(false);
   let dialogRef;
   let chatAreaRef;
   let focusedUser = $state("nil"); //todo: 改成ID
@@ -185,7 +186,9 @@
     <Sidebar />
 
     <div class="hover:cursor-default flex flex-col overflow-y-auto w-[300px]">
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       {#each $peers as p, idx}
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div
           class={idx != 0
             ? "flex items-center hover:bg-slate-100"
@@ -239,13 +242,17 @@
                     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
                     <ul
                       tabindex="0"
-                      class="dropdown-content menu bg-white rounded-box z-10 w-auto p-2 shadow-sm"
+                      class="w-[200px] dropdown-content menu bg-white rounded-box z-10  p-2 shadow-sm"
                     >
                       <li class="hover:bg-zinc-200 rounded-md">
                         <button
                           onclick={() => {
                             copyToClipboard(data[1]);
                             chatAreaRef.focus();
+                            showToast = true;
+                            setTimeout(() => {
+                              showToast = false;
+                            }, 1500);
                           }}>Copy</button
                         >
                       </li>
@@ -317,6 +324,10 @@
         onclick={() => {
           copyToClipboard(chatting_history.get(focusedUser)[showFullChat][1]);
           dialogRef.close();
+          showToast = true;
+          setTimeout(() => {
+            showToast = false;
+          }, 1500);
           chatAreaRef.focus();
         }}>Copy</button
       >
@@ -332,3 +343,11 @@
     {/if}
   </div>
 </dialog>
+
+{#if showToast}
+  <div class="mt-6 toast toast-top toast-center">
+    <div class="alert alert-success">
+      <span>Message copied</span>
+    </div>
+  </div>
+{/if}
