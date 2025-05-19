@@ -65,7 +65,7 @@
   function handleKeydown(event) {
     if (event.key === "Enter") {
       event.preventDefault();
-      const text = newMessage.trim();
+      const text = newMessage;
       SendMsgToBackend(text);
       if (!text) return;
       add_chat_msg(focusedUser, 0, text);
@@ -283,14 +283,17 @@
 
 <dialog bind:this={dialogRef} class="modal">
   <div class="modal-box bg-white text-black">
-    {#if showFullChat != -1}
-      <p class="py-4">{chatting_history.get(focusedUser)[showFullChat][1]}</p>
-    {/if}
-    <div class="flex justify-end items-center">
+    <div class="flex justify-start items-center">
       <button class="btn m-2">Copy</button>
       <form method="dialog">
         <button class="btn m-2">Close</button>
       </form>
     </div>
+
+    {#if showFullChat != -1}
+      <p class="py-4" style="white-space: pre-wrap;">{chatting_history.get(focusedUser)[showFullChat][1]}</p>
+    {/if}
   </div>
 </dialog>
+
+
