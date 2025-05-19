@@ -11,6 +11,7 @@
 
   let chatContainer;
   let dialogRef;
+  let chatAreaRef;
   let focusedUser = $state("nil"); //todo: 改成ID
   let chatting = $state(new Map([["self", true]]));
 
@@ -27,6 +28,26 @@
   function updateChatting(user, status) {
     chatting.set(user, status);
     chatting = new Map(chatting); // 重新创建 Map 引用
+  }
+
+  async function copyToClipboard(text) {
+    // Modern asynchronous API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        console.log("Copied to clipboard using Clipboard API");
+      } catch (err) {
+        console.error(
+          "Clipboard API failed, falling back to execCommand:",
+          err
+        );
+        // fallbackCopy(text);
+      }
+      // } else {
+      //   // Fallback for older browsers
+      //   fallbackCopy(text);
+      // }
+    }
   }
 
   let inviting = $state(false);
@@ -215,12 +236,18 @@
                     >
                       {data[1]}
                     </div>
+                    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
                     <ul
                       tabindex="0"
                       class="dropdown-content menu bg-white rounded-box z-10 w-auto p-2 shadow-sm"
                     >
                       <li class="hover:bg-zinc-200 rounded-md">
-                        <button>Copy</button>
+                        <button
+                          onclick={() => {
+                            copyToClipboard(data[1]);
+                            chatAreaRef.focus();
+                          }}>Copy</button
+                        >
                       </li>
                       <li class="hover:bg-zinc-200 rounded-md">
                         <button
@@ -243,6 +270,7 @@
 
           <div class="h-[38%]">
             <textarea
+              bind:this={chatAreaRef}
               bind:value={newMessage}
               onkeydown={handleKeydown}
               class="w-full h-full textarea focus:outline-none border-none focus:ring-0 bg-transparent"
@@ -284,16 +312,23 @@
 <dialog bind:this={dialogRef} class="modal">
   <div class="modal-box bg-white text-black">
     <div class="flex justify-start items-center">
-      <button class="btn m-2">Copy</button>
+      <button
+        class="btn m-2"
+        onclick={() => {
+          copyToClipboard(chatting_history.get(focusedUser)[showFullChat][1]);
+          dialogRef.close();
+          chatAreaRef.focus();
+        }}>Copy</button
+      >
       <form method="dialog">
         <button class="btn m-2">Close</button>
       </form>
     </div>
 
     {#if showFullChat != -1}
-      <p class="py-4" style="white-space: pre-wrap;">{chatting_history.get(focusedUser)[showFullChat][1]}</p>
+      <p class="py-4" style="white-space: pre-wrap;">
+        {chatting_history.get(focusedUser)[showFullChat][1]}
+      </p>
     {/if}
   </div>
 </dialog>
-
-
